@@ -1,3 +1,4 @@
+import { lerp } from './services/Models.service'; // custom change
 import { Exhibit } from './components/Exhibit';
 import { FloatingModel } from './components/Models/FloatingModel';
 import { AnimationModel } from './components/Models/AnimationModel';
@@ -9,6 +10,7 @@ import { Avatar, CAMERA } from './components/Avatar';
 import { FloorReflection } from './components/FloorReflection';
 
 export {
+  lerp, // custom change
   Exhibit,
   FloatingModel,
   EnvironmentModel,

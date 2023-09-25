@@ -1,43 +1,11 @@
-import React, { useMemo, useEffect, useRef, useCallback, createContext, createElement, useContext, useReducer, useDebugValue, useState, Suspense, cloneElement } from 'react';
-import { Environment as Environment$1, useBounds, PresentationControls, Bounds, ContactShadows, MeshReflectorMaterial } from '@react-three/drei';
+import React, { useEffect, useRef, useCallback, useMemo, createContext, createElement, useContext, useReducer, useDebugValue, useState, Suspense, cloneElement } from 'react';
 import { Vector2, Vector3, Euler, LinearFilter, AnimationMixer, LoopRepeat, TextureLoader, DirectionalLight, AmbientLight, SpotLight } from 'three';
 import { useFrame, useGraph, useThree, Canvas, useLoader } from '@react-three/fiber';
 import { GLTFLoader, DRACOLoader, FBXLoader, OrbitControls } from 'three-stdlib';
 import { suspend } from 'suspend-react';
+import { Environment as Environment$1, useBounds, PresentationControls, Bounds, ContactShadows, MeshReflectorMaterial } from '@react-three/drei';
 import { Bloom as Bloom$1, EffectComposer, SSAO } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
-
-const environmentPresets = {
-    hub: 'hub',
-    sunset: 'sunset',
-    dawn: 'dawn',
-    night: 'night',
-    warehouse: 'warehouse',
-    forest: 'forest',
-    apartment: 'apartment',
-    studio: 'studio',
-    city: 'city',
-    park: 'park',
-    lobby: 'lobby'
-};
-const getPresetEnvironmentMap = (preset) => `https://readyplayerme-assets.s3.amazonaws.com/environment/${preset}.hdr`;
-const environmentModels = {
-    spaceStation: 'https://readyplayerme-assets.s3.amazonaws.com/props/environment-space-station.glb',
-    platformDark: 'https://readyplayerme-assets.s3.amazonaws.com/props/simple-platform-dark.glb',
-    platformGreen: 'https://readyplayerme-assets.s3.amazonaws.com/props/simple-platform-green.glb',
-    platformBlue: 'https://readyplayerme-assets.s3.amazonaws.com/props/simple-platform-blue.glb'
-};
-
-const Environment = ({ environment }) => {
-    const config = useMemo(() => {
-        const isStaticPreset = environment in environmentPresets;
-        const files = isStaticPreset ? getPresetEnvironmentMap(environment) : environment;
-        return {
-            files
-        };
-    }, [environment]);
-    return React.createElement(Environment$1, { files: config.files });
-};
 
 /******************************************************************************
 Copyright (c) Microsoft Corporation.
@@ -331,6 +299,38 @@ const useIdleExpression = (expression, nodes) => {
             animateExpression(delta);
         }
     });
+};
+
+const environmentPresets = {
+    hub: 'hub',
+    sunset: 'sunset',
+    dawn: 'dawn',
+    night: 'night',
+    warehouse: 'warehouse',
+    forest: 'forest',
+    apartment: 'apartment',
+    studio: 'studio',
+    city: 'city',
+    park: 'park',
+    lobby: 'lobby'
+};
+const getPresetEnvironmentMap = (preset) => `https://readyplayerme-assets.s3.amazonaws.com/environment/${preset}.hdr`;
+const environmentModels = {
+    spaceStation: 'https://readyplayerme-assets.s3.amazonaws.com/props/environment-space-station.glb',
+    platformDark: 'https://readyplayerme-assets.s3.amazonaws.com/props/simple-platform-dark.glb',
+    platformGreen: 'https://readyplayerme-assets.s3.amazonaws.com/props/simple-platform-green.glb',
+    platformBlue: 'https://readyplayerme-assets.s3.amazonaws.com/props/simple-platform-blue.glb'
+};
+
+const Environment = ({ environment }) => {
+    const config = useMemo(() => {
+        const isStaticPreset = environment in environmentPresets;
+        const files = isStaticPreset ? getPresetEnvironmentMap(environment) : environment;
+        return {
+            files
+        };
+    }, [environment]);
+    return React.createElement(Environment$1, { files: config.files });
 };
 
 let keyCount = 0;
@@ -1715,4 +1715,4 @@ const FloorReflection = (_a) => {
                 React.createElement(MeshReflectorMaterial, Object.assign({ resolution: resolution, mixBlur: mixBlur, mixStrength: mixStrength, metalness: metalness, blur: blur, mirror: mirror, minDepthThreshold: minDepthThreshold, maxDepthThreshold: maxDepthThreshold, depthScale: depthScale, depthToBlurRatioBias: depthToBlurRatioBias, distortion: distortion, mixContrast: mixContrast, reflectorOffset: reflectorOffset, roughness: roughness, color: color, envMapIntensity: 0 }, props))))));
 };
 
-export { AnimationModelContainer as AnimationModel, AvatarWrapper as Avatar, CAMERA, EnvironmentModelContainer as EnvironmentModel, Exhibit, FloatingModelContainer as FloatingModel, FloorReflection, HalfBodyModelContainer as HalfBodyModel, PoseModelContainer as PoseModel, StaticModelContainer as StaticModel };
+export { AnimationModelContainer as AnimationModel, AvatarWrapper as Avatar, CAMERA, EnvironmentModelContainer as EnvironmentModel, Exhibit, FloatingModelContainer as FloatingModel, FloorReflection, HalfBodyModelContainer as HalfBodyModel, PoseModelContainer as PoseModel, StaticModelContainer as StaticModel, lerp };

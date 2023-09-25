@@ -3,49 +3,17 @@
 Object.defineProperty(exports, '__esModule', { value: true });
 
 var React = require('react');
-var drei = require('@react-three/drei');
 var three = require('three');
 var fiber = require('@react-three/fiber');
 var threeStdlib = require('three-stdlib');
 var suspendReact = require('suspend-react');
+var drei = require('@react-three/drei');
 var postprocessing = require('@react-three/postprocessing');
 var postprocessing$1 = require('postprocessing');
 
 function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'default' in e ? e : { 'default': e }; }
 
 var React__default = /*#__PURE__*/_interopDefaultLegacy(React);
-
-const environmentPresets = {
-    hub: 'hub',
-    sunset: 'sunset',
-    dawn: 'dawn',
-    night: 'night',
-    warehouse: 'warehouse',
-    forest: 'forest',
-    apartment: 'apartment',
-    studio: 'studio',
-    city: 'city',
-    park: 'park',
-    lobby: 'lobby'
-};
-const getPresetEnvironmentMap = (preset) => `https://readyplayerme-assets.s3.amazonaws.com/environment/${preset}.hdr`;
-const environmentModels = {
-    spaceStation: 'https://readyplayerme-assets.s3.amazonaws.com/props/environment-space-station.glb',
-    platformDark: 'https://readyplayerme-assets.s3.amazonaws.com/props/simple-platform-dark.glb',
-    platformGreen: 'https://readyplayerme-assets.s3.amazonaws.com/props/simple-platform-green.glb',
-    platformBlue: 'https://readyplayerme-assets.s3.amazonaws.com/props/simple-platform-blue.glb'
-};
-
-const Environment = ({ environment }) => {
-    const config = React.useMemo(() => {
-        const isStaticPreset = environment in environmentPresets;
-        const files = isStaticPreset ? getPresetEnvironmentMap(environment) : environment;
-        return {
-            files
-        };
-    }, [environment]);
-    return React__default["default"].createElement(drei.Environment, { files: config.files });
-};
 
 /******************************************************************************
 Copyright (c) Microsoft Corporation.
@@ -339,6 +307,38 @@ const useIdleExpression = (expression, nodes) => {
             animateExpression(delta);
         }
     });
+};
+
+const environmentPresets = {
+    hub: 'hub',
+    sunset: 'sunset',
+    dawn: 'dawn',
+    night: 'night',
+    warehouse: 'warehouse',
+    forest: 'forest',
+    apartment: 'apartment',
+    studio: 'studio',
+    city: 'city',
+    park: 'park',
+    lobby: 'lobby'
+};
+const getPresetEnvironmentMap = (preset) => `https://readyplayerme-assets.s3.amazonaws.com/environment/${preset}.hdr`;
+const environmentModels = {
+    spaceStation: 'https://readyplayerme-assets.s3.amazonaws.com/props/environment-space-station.glb',
+    platformDark: 'https://readyplayerme-assets.s3.amazonaws.com/props/simple-platform-dark.glb',
+    platformGreen: 'https://readyplayerme-assets.s3.amazonaws.com/props/simple-platform-green.glb',
+    platformBlue: 'https://readyplayerme-assets.s3.amazonaws.com/props/simple-platform-blue.glb'
+};
+
+const Environment = ({ environment }) => {
+    const config = React.useMemo(() => {
+        const isStaticPreset = environment in environmentPresets;
+        const files = isStaticPreset ? getPresetEnvironmentMap(environment) : environment;
+        return {
+            files
+        };
+    }, [environment]);
+    return React__default["default"].createElement(drei.Environment, { files: config.files });
 };
 
 let keyCount = 0;
@@ -1733,3 +1733,4 @@ exports.FloorReflection = FloorReflection;
 exports.HalfBodyModel = HalfBodyModelContainer;
 exports.PoseModel = PoseModelContainer;
 exports.StaticModel = StaticModelContainer;
+exports.lerp = lerp;

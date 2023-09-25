@@ -7,6 +7,8 @@ import { Dpr } from '@react-three/fiber';
 import { Background } from './src/components/Background/Box/Box.component';
 import { EnvironmentModels } from './src/services/Environment.service';
 
+declare const lerp: (start: number, end: number, time?: number) => number;
+
 interface ExhibitProps extends CameraProps, EnvironmentProps, Omit<BaseModelProps, 'setModelFallback'> {
     /**
      * Arbitrary binary data (base64 string | Blob) of a `.glb` file or path (URL) to a `.glb` resource.
@@ -281,4 +283,4 @@ interface FloorReflectionProps {
 }
 declare const FloorReflection: FC<FloorReflectionProps>;
 
-export { AnimationModelContainer as AnimationModel, AvatarWrapper as Avatar, CAMERA, EnvironmentModelContainer as EnvironmentModel, Exhibit, FloatingModelContainer as FloatingModel, FloorReflection, HalfBodyModelContainer as HalfBodyModel, PoseModelContainer as PoseModel, StaticModelContainer as StaticModel };
+export { AnimationModelContainer as AnimationModel, AvatarWrapper as Avatar, CAMERA, EnvironmentModelContainer as EnvironmentModel, Exhibit, FloatingModelContainer as FloatingModel, FloorReflection, HalfBodyModelContainer as HalfBodyModel, PoseModelContainer as PoseModel, StaticModelContainer as StaticModel, lerp };
