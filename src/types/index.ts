@@ -36,7 +36,7 @@ export interface BaseModelProps {
   /**
    * Detect when model is loaded (doesn't take into account animations and effects) and trigger custom logic.
    */
-  onLoaded?: (model: Object3D) => void; // custom change
+  onLoaded?: (model?: Object3D | null) => void; // custom change
   /**
    * Detect when model is being loaded and trigger custom logic.
    */

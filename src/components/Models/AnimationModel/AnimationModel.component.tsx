@@ -76,7 +76,7 @@ export const AnimationModel: FC<AnimationModelProps> = ({
       modelRef={ref}
       scene={scene}
       scale={scale}
-      onLoaded={() => onLoaded(ref.current)} // custom change
+      onLoaded={() => onLoaded && onLoaded(ref.current)} // custom change
       onSpawnAnimationFinish={onSpawnAnimationFinish}
       bloom={bloom}
     />

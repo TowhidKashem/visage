@@ -81,7 +81,7 @@ export const CameraLighting: FC<CameraLightingProps> = ({
 
     controls = new OrbitControls(camera, gl.domElement);
 
-    onCameraReady(camera, controls); // custom change
+    if (onCameraReady) onCameraReady(camera, controls); // custom change
 
     // controls.enableRotate = false;
     // controls.enablePan = false;
