@@ -35,7 +35,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint --fix",
     "format": "prettier --write './**/*.{js,jsx,ts,tsx,css,json}' --config ./.prettierrc",
-    "build-package": "NO_HUSKY=1 rollup -c",
+    "build-package": "NO_HUSKY=1 rm -rf dist && rollup -c && echo -e '\\033[33mIMPORTANT: now update the broken import paths in `types.d.ts`.\\033[0m'",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "prepare": "if [ -z $NO_HUSKY ]; then husky install; fi"
