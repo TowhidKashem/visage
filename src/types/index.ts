@@ -1,4 +1,4 @@
-import { Color, Vector3 } from 'three';
+import { Object3D, Color, Vector3 } from 'three';
 import { PresetsType } from '@react-three/drei/helpers/environment-assets';
 
 export type Required<T> = {
@@ -36,7 +36,7 @@ export interface BaseModelProps {
   /**
    * Detect when model is loaded (doesn't take into account animations and effects) and trigger custom logic.
    */
-  onLoaded?: () => void;
+  onLoaded?: (model: Object3D) => void; // custom change
   /**
    * Detect when model is being loaded and trigger custom logic.
    */

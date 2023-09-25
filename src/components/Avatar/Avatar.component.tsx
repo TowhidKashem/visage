@@ -1,5 +1,6 @@
 import React, { Suspense, FC, useMemo, CSSProperties, ReactNode, useEffect } from 'react';
-import { Vector3 } from 'three';
+import { Camera, Vector3 } from 'three';
+import { OrbitControls } from 'three-stdlib';
 import { CameraLighting } from 'src/components/Scene/CameraLighting.component';
 import { Environment } from 'src/components/Scene/Environment.component';
 import {
@@ -54,6 +55,7 @@ export const CAMERA = {
 export type Emotion = Record<string, number>;
 
 export interface AvatarProps extends LightingProps, EnvironmentProps, Omit<BaseModelProps, 'setModelFallback'> {
+  onCameraReady?: (camera: Camera, controls: OrbitControls) => void; // custom change
   /**
    * Arbitrary binary data (base64 string, Blob) of a `.glb` file or path (URL) to a `.glb` resource.
    */
@@ -162,6 +164,7 @@ export interface AvatarProps extends LightingProps, EnvironmentProps, Omit<BaseM
  * Optimised for full-body and half-body avatars.
  */
 const Avatar: FC<AvatarProps> = ({
+  onCameraReady, // custom change
   modelSrc,
   animationSrc = undefined,
   poseSrc = undefined,
@@ -259,6 +262,7 @@ const Avatar: FC<AvatarProps> = ({
     <BaseCanvas position={new Vector3(0, 0, 3)} fov={fov} style={style} dpr={dpr} className={className}>
       <Environment environment={environment} />
       <CameraLighting
+        onCameraReady={onCameraReady} // custom change
         cameraTarget={cameraTarget}
         cameraInitialDistance={cameraInitialDistance}
         cameraZoomTarget={cameraZoomTarget}

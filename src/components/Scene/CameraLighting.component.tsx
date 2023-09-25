@@ -6,6 +6,7 @@ import { clamp, lerp } from 'src/services';
 import { LightingProps, Required } from 'src/types';
 
 type CameraLightingProps = Required<LightingProps> & {
+  onCameraReady?: (camera: Camera, controls: OrbitControls) => void; // custom change
   // eslint-disable-next-line react/no-unused-prop-types
   fullBody?: boolean;
   headScale?: number;
@@ -45,6 +46,7 @@ const updateCameraTarget = (camera: Camera, target: number, minDistance: number,
 };
 
 export const CameraLighting: FC<CameraLightingProps> = ({
+  onCameraReady, // custom change
   cameraTarget,
   cameraInitialDistance,
   cameraZoomTarget,
@@ -78,11 +80,16 @@ export const CameraLighting: FC<CameraLightingProps> = ({
     }
 
     controls = new OrbitControls(camera, gl.domElement);
-    controls.enableRotate = false;
-    controls.enablePan = false;
 
+    onCameraReady(camera, controls); // custom change
+
+    // controls.enableRotate = false;
+    // controls.enablePan = false;
+
+    // prevents camera from zooming too far into the insides of the body // custom change
     controls.minDistance = headScaleAdjustedMinDistance;
     controls.maxDistance = controlsMaxDistance;
+
     controls.minPolarAngle = 1.4;
     controls.maxPolarAngle = 1.4;
 
