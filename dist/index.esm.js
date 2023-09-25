@@ -1150,19 +1150,20 @@ const Spawn = ({ avatar, onSpawnFinish }) => {
 };
 
 const ROTATION_STEP = 0.005;
+const isBrowser$1 = typeof window !== 'undefined';
 const Model = ({ scene, scale = 1, modelRef, onLoaded, onSpawnAnimationFinish, bloom }) => {
     const { materials } = useGraph(scene);
     const { gl } = useThree();
     const [isTouching, setIsTouching] = useState(false);
     const [touchEvent, setTouchEvent] = useState(null);
     const setTouchingOn = (e) => {
-        if (window.TouchEvent && e instanceof TouchEvent) {
+        if (isBrowser$1 && window.TouchEvent && e instanceof TouchEvent) {
             setTouchEvent(e);
         }
         setIsTouching(true);
     };
     const setTouchingOff = (e) => {
-        if (window.TouchEvent && e instanceof TouchEvent) {
+        if (isBrowser$1 && window.TouchEvent && e instanceof TouchEvent) {
             setTouchEvent(null);
         }
         setIsTouching(false);
@@ -1172,7 +1173,7 @@ const Model = ({ scene, scale = 1, modelRef, onLoaded, onSpawnAnimationFinish, b
             /* eslint-disable-next-line no-param-reassign */
             scene.rotation.y += event.movementX * ROTATION_STEP;
         }
-        if (isTouching && window.TouchEvent && event instanceof TouchEvent) {
+        if (isBrowser$1 && isTouching && window.TouchEvent && event instanceof TouchEvent) {
             /* eslint-disable-next-line no-param-reassign */
             const movementX = Math.round(event.touches[0].pageX - touchEvent.touches[0].pageX);
             /* eslint-disable-next-line no-param-reassign */
@@ -1305,7 +1306,8 @@ var css_248z$1 = ".BaseCanvas-module_base-canvas__Xjohd {\n  width: 100%;\n  hei
 var styles$1 = {"base-canvas":"BaseCanvas-module_base-canvas__Xjohd"};
 styleInject(css_248z$1);
 
-const BaseCanvas = ({ children = undefined, fov = 50, position = new Vector3(0, 0, 5), style, dpr = [window.devicePixelRatio * 0.5, 2], className }) => (React.createElement(Canvas, { key: fov, className: `${styles$1['base-canvas']} ${className !== null && className !== void 0 ? className : ''}`, shadows: "soft", gl: { preserveDrawingBuffer: true, toneMappingExposure: 0.5, alpha: true }, dpr: dpr, camera: { fov, position }, resize: { scroll: true, debounce: { scroll: 50, resize: 0 } }, style: Object.assign(Object.assign({}, style), { background: 'transparent' }) }, children));
+const isBrowser = typeof window !== 'undefined';
+const BaseCanvas = ({ children = undefined, fov = 50, position = new Vector3(0, 0, 5), style, dpr = [(isBrowser ? window.devicePixelRatio : 0) * 0.5, 2], className }) => (React.createElement(Canvas, { key: fov, className: `${styles$1['base-canvas']} ${className !== null && className !== void 0 ? className : ''}`, shadows: "soft", gl: { preserveDrawingBuffer: true, toneMappingExposure: 0.5, alpha: true }, dpr: dpr, camera: { fov, position }, resize: { scroll: true, debounce: { scroll: 50, resize: 0 } }, style: Object.assign(Object.assign({}, style), { background: 'transparent' }) }, children));
 
 const Capture = ({ trigger, settings, callBack }) => {
     const gl = useThree((state) => state.gl);
