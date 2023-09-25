@@ -1,4 +1,3 @@
-import path from 'path';
 import peerDepsExternal from 'rollup-plugin-peer-deps-external';
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
@@ -27,7 +26,7 @@ export default [
       peerDepsExternal(),
       commonjs(),
       typescript({
-        tsconfig: path.resolve(__dirname, './tsconfig.json'),
+        tsconfig: './tsconfig.json',
         exclude: [
           '**/__tests__',
           '**/__snapshots__',
