@@ -26,7 +26,7 @@ export default [
       peerDepsExternal(),
       commonjs(),
       typescript({
-        tsconfig: './tsconfig.json',
+        tsconfig: path.resolve(__dirname, './tsconfig.json'),
         exclude: [
           '**/__tests__',
           '**/__snapshots__',
