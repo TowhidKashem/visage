@@ -14,21 +14,19 @@ interface ModelProps extends BaseModelProps {
 
 const ROTATION_STEP = 0.005;
 
-const isBrowser = typeof window !== 'undefined';
-
 export const Model: FC<ModelProps> = ({ scene, scale = 1, modelRef, onLoaded, onSpawnAnimationFinish, bloom }) => {
   const { materials } = useGraph(scene);
   const { gl } = useThree();
   const [isTouching, setIsTouching] = useState(false);
   const [touchEvent, setTouchEvent] = useState<TouchEvent | null>(null);
   const setTouchingOn = (e: MouseEvent | TouchEvent) => {
-    if (isBrowser && window.TouchEvent && e instanceof TouchEvent) {
+    if (window.TouchEvent && e instanceof TouchEvent) {
       setTouchEvent(e as TouchEvent);
     }
     setIsTouching(true);
   };
   const setTouchingOff = (e: MouseEvent | TouchEvent) => {
-    if (isBrowser && window.TouchEvent && e instanceof TouchEvent) {
+    if (window.TouchEvent && e instanceof TouchEvent) {
       setTouchEvent(null);
     }
     setIsTouching(false);
@@ -40,7 +38,7 @@ export const Model: FC<ModelProps> = ({ scene, scale = 1, modelRef, onLoaded, on
         scene.rotation.y += event.movementX * ROTATION_STEP;
       }
 
-      if (isBrowser && isTouching && window.TouchEvent && event instanceof TouchEvent) {
+      if (isTouching && window.TouchEvent && event instanceof TouchEvent) {
         /* eslint-disable-next-line no-param-reassign */
         const movementX = Math.round(event.touches[0].pageX - touchEvent!.touches[0].pageX);
         /* eslint-disable-next-line no-param-reassign */
