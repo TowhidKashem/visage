@@ -283,4 +283,4 @@ interface FloorReflectionProps {
 }
 declare const FloorReflection: FC<FloorReflectionProps>;
 
-export { AnimationModelContainer as AnimationModel, AvatarWrapper as Avatar, CAMERA, EnvironmentModelContainer as EnvironmentModel, Exhibit, FloatingModelContainer as FloatingModel, FloorReflection, HalfBodyModelContainer as HalfBodyModel, PoseModelContainer as PoseModel, StaticModelContainer as StaticModel, lerp };
+export { AnimationModelContainer as AnimationModel, AvatarWrapper as Avatar, AvatarProps, CAMERA, EnvironmentModelContainer as EnvironmentModel, Exhibit, FloatingModelContainer as FloatingModel, FloorReflection, HalfBodyModelContainer as HalfBodyModel, PoseModelContainer as PoseModel, StaticModelContainer as StaticModel, lerp };

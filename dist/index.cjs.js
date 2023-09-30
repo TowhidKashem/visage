@@ -341,6 +341,8 @@ const Environment = ({ environment }) => {
     return React__default["default"].createElement(drei.Environment, { files: config.files });
 };
 
+const hasWindow = typeof window !== 'undefined';
+
 let keyCount = 0;
 function atom(read, write) {
   const key = `atom${++keyCount}`;
@@ -401,11 +403,9 @@ const createStore = () => {
   const atomStateMap = /* @__PURE__ */ new WeakMap();
   const mountedMap = /* @__PURE__ */ new WeakMap();
   const pendingMap = /* @__PURE__ */ new Map();
-  let storeListenersRev1;
   let storeListenersRev2;
   let mountedAtoms;
   if ((undefined ? undefined.MODE : void 0) !== "production") {
-    storeListenersRev1 = /* @__PURE__ */ new Set();
     storeListenersRev2 = /* @__PURE__ */ new Set();
     mountedAtoms = /* @__PURE__ */ new Set();
   }
@@ -421,7 +421,9 @@ const createStore = () => {
     }
     if (prevAtomState && hasPromiseAtomValue(prevAtomState)) {
       const next = "v" in atomState ? atomState.v instanceof Promise ? atomState.v : Promise.resolve(atomState.v) : Promise.reject(atomState.e);
-      cancelPromise(prevAtomState.v, next);
+      if (prevAtomState.v !== next) {
+        cancelPromise(prevAtomState.v, next);
+      }
     }
   };
   const updateDependencies = (atom, nextAtomState, nextDependencies) => {
@@ -483,7 +485,7 @@ const createStore = () => {
               );
               resolvePromise(promise, v);
               resolve(v);
-              if ((prevAtomState == null ? void 0 : prevAtomState.d) !== nextAtomState.d) {
+              if (mountedMap.has(atom) && (prevAtomState == null ? void 0 : prevAtomState.d) !== nextAtomState.d) {
                 mountDependencies(atom, nextAtomState, prevAtomState == null ? void 0 : prevAtomState.d);
               }
             }
@@ -499,7 +501,7 @@ const createStore = () => {
               );
               rejectPromise(promise, e);
               reject(e);
-              if ((prevAtomState == null ? void 0 : prevAtomState.d) !== nextAtomState.d) {
+              if (mountedMap.has(atom) && (prevAtomState == null ? void 0 : prevAtomState.d) !== nextAtomState.d) {
                 mountDependencies(atom, nextAtomState, prevAtomState == null ? void 0 : prevAtomState.d);
               }
             }
@@ -543,19 +545,15 @@ const createStore = () => {
     setAtomState(atom, nextAtomState);
     return nextAtomState;
   };
-  const readAtomState = (atom) => {
+  const readAtomState = (atom, force) => {
     const atomState = getAtomState(atom);
-    if (atomState) {
-      atomState.d.forEach((_, a) => {
-        if (a !== atom && !mountedMap.has(a)) {
-          readAtomState(a);
-        }
-      });
-      if (Array.from(atomState.d).every(([a, s]) => {
-        const aState = getAtomState(a);
-        return a === atom || aState === s || // TODO This is a hack, we should find a better solution.
-        aState && !hasPromiseAtomValue(aState) && isEqualAtomValue(aState, s);
-      })) {
+    if (!force && atomState) {
+      if (mountedMap.has(atom)) {
+        return atomState;
+      }
+      if (Array.from(atomState.d).every(
+        ([a, s]) => a === atom || readAtomState(a) === s
+      )) {
         return atomState;
       }
     }
@@ -636,9 +634,19 @@ const createStore = () => {
   const recomputeDependents = (atom) => {
     const dependencyMap = /* @__PURE__ */ new Map();
     const dirtyMap = /* @__PURE__ */ new WeakMap();
+    const getDependents = (a) => {
+      var _a;
+      const dependents = new Set((_a = mountedMap.get(a)) == null ? void 0 : _a.t);
+      pendingMap.forEach((_, pendingAtom) => {
+        var _a2;
+        if ((_a2 = getAtomState(pendingAtom)) == null ? void 0 : _a2.d.has(a)) {
+          dependents.add(pendingAtom);
+        }
+      });
+      return dependents;
+    };
     const loop1 = (a) => {
-      const mounted = mountedMap.get(a);
-      mounted == null ? void 0 : mounted.t.forEach((dependent) => {
+      getDependents(a).forEach((dependent) => {
         if (dependent !== a) {
           dependencyMap.set(
             dependent,
@@ -651,8 +659,7 @@ const createStore = () => {
     };
     loop1(atom);
     const loop2 = (a) => {
-      const mounted = mountedMap.get(a);
-      mounted == null ? void 0 : mounted.t.forEach((dependent) => {
+      getDependents(a).forEach((dependent) => {
         var _a;
         if (dependent !== a) {
           let dirtyCount = dirtyMap.get(dependent);
@@ -663,7 +670,7 @@ const createStore = () => {
             let isChanged = !!((_a = dependencyMap.get(dependent)) == null ? void 0 : _a.size);
             if (isChanged) {
               const prevAtomState = getAtomState(dependent);
-              const nextAtomState = readAtomState(dependent);
+              const nextAtomState = readAtomState(dependent, true);
               isChanged = !prevAtomState || !isEqualAtomValue(prevAtomState, nextAtomState);
             }
             if (!isChanged) {
@@ -717,7 +724,20 @@ const createStore = () => {
     }
     return result;
   };
-  const mountAtom = (atom, initialDependent) => {
+  const mountAtom = (atom, initialDependent, onMountQueue) => {
+    var _a;
+    const queue = onMountQueue || [];
+    (_a = getAtomState(atom)) == null ? void 0 : _a.d.forEach((_, a) => {
+      const aMounted = mountedMap.get(a);
+      if (aMounted) {
+        aMounted.t.add(atom);
+      } else {
+        if (a !== atom) {
+          mountAtom(a, atom, queue);
+        }
+      }
+    });
+    readAtomState(atom);
     const mounted = {
       t: new Set(initialDependent && [initialDependent]),
       l: /* @__PURE__ */ new Set()
@@ -726,22 +746,17 @@ const createStore = () => {
     if ((undefined ? undefined.MODE : void 0) !== "production") {
       mountedAtoms.add(atom);
     }
-    readAtomState(atom).d.forEach((_, a) => {
-      const aMounted = mountedMap.get(a);
-      if (aMounted) {
-        aMounted.t.add(atom);
-      } else {
-        if (a !== atom) {
-          mountAtom(a, atom);
-        }
-      }
-    });
-    readAtomState(atom);
     if (isActuallyWritableAtom(atom) && atom.onMount) {
-      const onUnmount = atom.onMount((...args) => writeAtom(atom, ...args));
-      if (onUnmount) {
-        mounted.u = onUnmount;
-      }
+      const { onMount } = atom;
+      queue.push(() => {
+        const onUnmount = onMount((...args) => writeAtom(atom, ...args));
+        if (onUnmount) {
+          mounted.u = onUnmount;
+        }
+      });
+    }
+    if (!onMountQueue) {
+      queue.forEach((f) => f());
     }
     return mounted;
   };
@@ -810,10 +825,10 @@ const createStore = () => {
       pending.forEach(([atom, prevAtomState]) => {
         const atomState = getAtomState(atom);
         if (atomState) {
-          if (atomState.d !== (prevAtomState == null ? void 0 : prevAtomState.d)) {
+          const mounted = mountedMap.get(atom);
+          if (mounted && atomState.d !== (prevAtomState == null ? void 0 : prevAtomState.d)) {
             mountDependencies(atom, atomState, prevAtomState == null ? void 0 : prevAtomState.d);
           }
-          const mounted = mountedMap.get(atom);
           if (mounted && !// TODO This seems pretty hacky. Hope to fix it.
           // Maybe we could `mountDependencies` in `setAtomState`?
           (prevAtomState && !hasPromiseAtomValue(prevAtomState) && (isEqualAtomValue(prevAtomState, atomState) || isEqualAtomError(prevAtomState, atomState)))) {
@@ -828,7 +843,6 @@ const createStore = () => {
       });
     }
     if ((undefined ? undefined.MODE : void 0) !== "production") {
-      storeListenersRev1.forEach((l) => l("state"));
       return flushed;
     }
   };
@@ -838,7 +852,6 @@ const createStore = () => {
     const listeners = mounted.l;
     listeners.add(listener);
     if ((undefined ? undefined.MODE : void 0) !== "production") {
-      storeListenersRev1.forEach((l) => l("sub"));
       storeListenersRev2.forEach(
         (l) => l({ type: "sub", flushed })
       );
@@ -847,7 +860,6 @@ const createStore = () => {
       listeners.delete(listener);
       delAtom(atom);
       if ((undefined ? undefined.MODE : void 0) !== "production") {
-        storeListenersRev1.forEach((l) => l("unsub"));
         storeListenersRev2.forEach((l) => l({ type: "unsub" }));
       }
     };
@@ -860,13 +872,7 @@ const createStore = () => {
       // store dev methods (these are tentative and subject to change without notice)
       dev_subscribe_store: (l, rev) => {
         if (rev !== 2) {
-          console.warn(
-            "The current StoreListener revision is 2. The older ones are deprecated."
-          );
-          storeListenersRev1.add(l);
-          return () => {
-            storeListenersRev1.delete(l);
-          };
+          throw new Error("The current StoreListener revision is 2.");
         }
         storeListenersRev2.add(l);
         return () => {
@@ -897,21 +903,24 @@ const createStore = () => {
   };
 };
 let defaultStore;
+if ((undefined ? undefined.MODE : void 0) !== "production") {
+  if (typeof globalThis.__NUMBER_OF_JOTAI_INSTANCES__ === "number") {
+    ++globalThis.__NUMBER_OF_JOTAI_INSTANCES__;
+  } else {
+    globalThis.__NUMBER_OF_JOTAI_INSTANCES__ = 1;
+  }
+}
 const getDefaultStore = () => {
   if (!defaultStore) {
+    if ((undefined ? undefined.MODE : void 0) !== "production" && globalThis.__NUMBER_OF_JOTAI_INSTANCES__ !== 1) {
+      console.warn(
+        "Detected multiple Jotai instances. It may cause unexpected behavior with the default store. https://github.com/pmndrs/jotai/discussions/2044"
+      );
+    }
     defaultStore = createStore();
   }
   return defaultStore;
 };
-if ((undefined ? undefined.MODE : void 0) !== "production") {
-  if (globalThis.__JOTAI_PACKAGE_IS_LOADED__) {
-    console.warn(
-      "Detected multiple Jotai instances. It may cause unexpected behavior. https://github.com/pmndrs/jotai/discussions/2044"
-    );
-  } else {
-    globalThis.__JOTAI_PACKAGE_IS_LOADED__ = true;
-  }
-}
 
 const StoreContext = React.createContext(void 0);
 const useStore = (options) => {
@@ -1158,20 +1167,19 @@ const Spawn = ({ avatar, onSpawnFinish }) => {
 };
 
 const ROTATION_STEP = 0.005;
-const isBrowser$1 = typeof window !== 'undefined';
 const Model = ({ scene, scale = 1, modelRef, onLoaded, onSpawnAnimationFinish, bloom }) => {
     const { materials } = fiber.useGraph(scene);
     const { gl } = fiber.useThree();
     const [isTouching, setIsTouching] = React.useState(false);
     const [touchEvent, setTouchEvent] = React.useState(null);
     const setTouchingOn = (e) => {
-        if (isBrowser$1 && window.TouchEvent && e instanceof TouchEvent) {
+        if (hasWindow && window.TouchEvent && e instanceof TouchEvent) {
             setTouchEvent(e);
         }
         setIsTouching(true);
     };
     const setTouchingOff = (e) => {
-        if (isBrowser$1 && window.TouchEvent && e instanceof TouchEvent) {
+        if (hasWindow && window.TouchEvent && e instanceof TouchEvent) {
             setTouchEvent(null);
         }
         setIsTouching(false);
@@ -1181,7 +1189,7 @@ const Model = ({ scene, scale = 1, modelRef, onLoaded, onSpawnAnimationFinish, b
             /* eslint-disable-next-line no-param-reassign */
             scene.rotation.y += event.movementX * ROTATION_STEP;
         }
-        if (isBrowser$1 && isTouching && window.TouchEvent && event instanceof TouchEvent) {
+        if (hasWindow && isTouching && window.TouchEvent && event instanceof TouchEvent) {
             /* eslint-disable-next-line no-param-reassign */
             const movementX = Math.round(event.touches[0].pageX - touchEvent.touches[0].pageX);
             /* eslint-disable-next-line no-param-reassign */
@@ -1203,18 +1211,18 @@ const Model = ({ scene, scale = 1, modelRef, onLoaded, onSpawnAnimationFinish, b
     React.useEffect(() => {
         gl.domElement.addEventListener('mousedown', setTouchingOn);
         gl.domElement.addEventListener('touchstart', setTouchingOn, { passive: true });
-        gl.domElement.addEventListener('mouseup', setTouchingOff);
+        window.addEventListener('mouseup', setTouchingOff);
         gl.domElement.addEventListener('touchend', setTouchingOff);
         gl.domElement.addEventListener('touchcancel', setTouchingOff);
-        gl.domElement.addEventListener('mousemove', onTouchMove);
+        window.addEventListener('mousemove', onTouchMove);
         gl.domElement.addEventListener('touchmove', onTouchMove, { passive: true });
         return () => {
             gl.domElement.removeEventListener('mousedown', setTouchingOn);
             gl.domElement.removeEventListener('touchstart', setTouchingOn);
-            gl.domElement.removeEventListener('mouseup', setTouchingOff);
+            window.removeEventListener('mouseup', setTouchingOff);
             gl.domElement.removeEventListener('touchend', setTouchingOff);
             gl.domElement.removeEventListener('touchcancel', setTouchingOff);
-            gl.domElement.removeEventListener('mousemove', onTouchMove);
+            window.removeEventListener('mousemove', onTouchMove);
             gl.domElement.removeEventListener('touchmove', onTouchMove);
         };
     });
@@ -1314,8 +1322,8 @@ var css_248z$1 = ".BaseCanvas-module_base-canvas__Xjohd {\n  width: 100%;\n  hei
 var styles$1 = {"base-canvas":"BaseCanvas-module_base-canvas__Xjohd"};
 styleInject(css_248z$1);
 
-const isBrowser = typeof window !== 'undefined';
-const BaseCanvas = ({ children = undefined, fov = 50, position = new three.Vector3(0, 0, 5), style, dpr = [(isBrowser ? window.devicePixelRatio : 0) * 0.5, 2], className }) => (React__default["default"].createElement(fiber.Canvas, { key: fov, className: `${styles$1['base-canvas']} ${className !== null && className !== void 0 ? className : ''}`, shadows: "soft", gl: { preserveDrawingBuffer: true, toneMappingExposure: 0.5, alpha: true }, dpr: dpr, camera: { fov, position }, resize: { scroll: true, debounce: { scroll: 50, resize: 0 } }, style: Object.assign(Object.assign({}, style), { background: 'transparent' }) }, children));
+const BASE_DPR = hasWindow ? window.devicePixelRatio : 1;
+const BaseCanvas = ({ children = undefined, fov = 50, position = new three.Vector3(0, 0, 5), style, dpr = [BASE_DPR * 0.5, 2], className }) => (React__default["default"].createElement(fiber.Canvas, { key: fov, className: `${styles$1['base-canvas']} ${className !== null && className !== void 0 ? className : ''}`, shadows: "soft", gl: { preserveDrawingBuffer: true, toneMappingExposure: 0.5, alpha: true }, dpr: dpr, camera: { fov, position }, resize: { scroll: true, debounce: { scroll: 50, resize: 0 } }, style: Object.assign(Object.assign({}, style), { background: 'transparent' }) }, children));
 
 const Capture = ({ trigger, settings, callBack }) => {
     const gl = fiber.useThree((state) => state.gl);
